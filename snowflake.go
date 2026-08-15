@@ -120,7 +120,11 @@ func (g *generator) next() (uint64, error) {
 		g.lastTs = now
 		g.seq = 0
 	}
-	ts := uint64(g.lastTs)
+	// The ID stores the millisecond offset from the custom epoch, not the
+	// absolute Unix time, so that decompose yields (genTime - EpochMs).
+	// g.lastTs-EpochMs is non-negative here: the guard below rejects a clock
+	// before the epoch before this value can be used.
+	ts := uint64(g.lastTs - EpochMs)
 	if int64(g.lastTs-EpochMs) < 0 {
 		return 0, serviceUnavailable("clock is before the custom epoch")
 	}
